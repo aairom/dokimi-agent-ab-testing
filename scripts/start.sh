@@ -77,25 +77,30 @@ echo "🚀 Starting Dokimi Agent Context A/B Testing Platform in detached mode..
 cd "${ROOT_DIR}"
 
 # Start uvicorn in background using nohup and disown to ensure persistence
-nohup "${PYTHON_BIN}" -m uvicorn app.main:app --host "${HOST}" --port "${PORT}" > "${LOG_FILE}" 2>&1 &
+nohup "${PYTHON_BIN}" -m uvicorn app.main:app --host "${HOST}" --port "${PORT}" >> "${LOG_FILE}" 2>&1 &
 APP_PID=$!
 echo "${APP_PID}" > "${PID_FILE}"
 disown "${APP_PID}" 2>/dev/null || true
 
 # Wait and poll health check endpoint to confirm successful bootstrap
 echo "⏳ Verifying application startup..."
-MAX_RETRIES=10
+MAX_RETRIES=15
 RETRY_COUNT=0
 IS_HEALTHY=false
 
 while [ "${RETRY_COUNT}" -lt "${MAX_RETRIES}" ]; do
     sleep 1
-    if ! ps -p "${APP_PID}" > /dev/null 2>&1; then
-        echo "❌ Server process terminated unexpectedly."
-        break
-    fi
     if curl -s "http://${HOST}:${PORT}/health" > /dev/null 2>&1; then
         IS_HEALTHY=true
+        break
+    fi
+    if ! ps -p "${APP_PID}" > /dev/null 2>&1; then
+        # Check if another process bound to the port or running
+        if curl -s "http://${HOST}:${PORT}/health" > /dev/null 2>&1; then
+            IS_HEALTHY=true
+            break
+        fi
+        echo "❌ Server process terminated unexpectedly."
         break
     fi
     RETRY_COUNT=$((RETRY_COUNT + 1))
