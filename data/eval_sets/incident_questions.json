@@ -1,0 +1,57 @@
+[
+  {
+    "id": "q1",
+    "question": "A production microservice pod in namespace 'production' is restarting continuously with Exit Code 137. How do I immediately diagnose and remediate this?",
+    "expected_topics": [
+      "Exit code 137 indicates OOMKilled (Out of Memory)",
+      "kubectl top pod or describe to check memory limits and termination reason",
+      "Increase container memory limit resources in Deployment YAML or kubectl set resources",
+      "Check previous container logs using kubectl logs --previous"
+    ],
+    "category": "kubernetes"
+  },
+  {
+    "id": "q2",
+    "question": "PostgreSQL database connection pool is completely exhausted, causing application HTTP 500 errors. How do we identify the culprit connections and unblock the system?",
+    "expected_topics": [
+      "Query pg_stat_activity to find idle in transaction connections",
+      "Terminate long-running or blocking connections with pg_terminate_backend or pg_cancel_backend",
+      "Check connection pool settings like PgBouncer pool_mode = transaction and connection limits",
+      "Measure transaction duration using now() - xact_start"
+    ],
+    "category": "database"
+  },
+  {
+    "id": "q3",
+    "question": "Our primary payment gateway is experiencing severe latency spikes (P99 > 1500ms) and 503 errors. What are the triage steps and automated failover procedure?",
+    "expected_topics": [
+      "Verify circuit breaker threshold and error rate / latency metrics",
+      "Trigger gateway failover to secondary processor (Adyen/Stripe fallback)",
+      "Replay or flush idempotent transactions using idempotency key",
+      "Check Kafka consumer queue health for settlement events"
+    ],
+    "category": "payments"
+  },
+  {
+    "id": "q4",
+    "question": "A newly deployed frontend pod is failing with CrashLoopBackOff and Exit Code 1. What is the systematic debugging sequence?",
+    "expected_topics": [
+      "Fetch previous logs with kubectl logs <pod> --previous --tail=100",
+      "Inspect Kubernetes events with kubectl describe pod",
+      "Verify ConfigMap, Secret environment bindings and DNS resolution",
+      "Execute rollback with kubectl rollout undo if deployment is poisoned"
+    ],
+    "category": "kubernetes"
+  },
+  {
+    "id": "q5",
+    "question": "How do we mitigate database deadlocks and slow queries blocking critical checkout transactions during a flash sale?",
+    "expected_topics": [
+      "Inspect pg_stat_activity and pg_locks for lock contention",
+      "Identify blocking queries ordered by duration",
+      "Cancel blocking backend PIDs safely",
+      "Ensure query indexes and connection pool transaction isolation"
+    ],
+    "category": "database"
+  }
+]

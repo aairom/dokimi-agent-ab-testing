@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }}</title>
+    <!-- Carbon Plex Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+    <!-- ECharts for Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- Header Shell -->
+    <header class="app-header">
+        <div class="brand-wrapper">
+            <div class="brand-logo">🧪</div>
+            <div class="brand-title">Dokimi Agent Context A/B Testing</div>
+            <span class="brand-badge">dokimi v0.1.0 engine</span>
+        </div>
+        <div class="header-status">
+            <div class="status-indicator">
+                <span id="backend-status-dot" class="status-dot"></span>
+                <span id="backend-status-text">Evaluation Engine Online</span>
+            </div>
+            <div class="model-picker-container">
+                <label style="font-size: 0.8rem; color: var(--cds-text-muted);">Provider:</label>
+                <select id="select-exp-provider" class="input-select" style="padding: 0.25rem 0.6rem; width: auto; font-size: 0.8rem;">
+                    <option value="mock" selected>Domain Mock (Instant Demo)</option>
+                    <option value="openai">OpenAI (GPT-4o / GPT-6.1)</option>
+                    <option value="anthropic">Anthropic (Claude 3.5)</option>
+                    <option value="local-ollama">Local Ollama (Port 11434)</option>
+                    <option value="local-llamacpp">Local Llama.cpp (Port 8000)</option>
+                </select>
+
+                <!-- Dynamic Model Input / Dropdown Container -->
+                <div id="model-select-wrapper" style="display: flex; align-items: center; gap: 0.35rem;">
+                    <input type="text" id="select-exp-model" class="input-text" value="mock-model" style="padding: 0.25rem 0.6rem; width: 140px; font-size: 0.8rem;" placeholder="Model name">
+                    <select id="select-local-models" class="input-select" style="display: none; padding: 0.25rem 0.6rem; min-width: 220px; font-size: 0.8rem;">
+                        <option value="">Querying models...</option>
+                    </select>
+                    <button id="btn-refresh-models" title="Refresh local models" class="btn btn-secondary" style="display: none; padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                        <span id="refresh-spinner">🔄</span>
+                    </button>
+                </div>
+                
+                <!-- Model metadata tag -->
+                <div id="model-meta-badge" class="tag tag-baseline" style="display: none; font-size: 0.7rem; padding: 0.15rem 0.4rem;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Progress Bar Header Banner (Real-time SSE Tracking) -->
+    <div id="global-progress-banner" class="progress-banner" style="display: none;">
+        <div class="progress-banner-inner">
+            <div class="progress-info-left">
+                <span class="progress-spinner"></span>
+                <span id="progress-task-label" class="progress-task-title">Evaluating A/B Context Arms...</span>
+                <span id="progress-step-desc" class="progress-step-subtext">Initializing</span>
+            </div>
+            <div class="progress-info-right">
+                <span id="progress-pct-badge" class="progress-pct">0%</span>
+                <span id="progress-timer" class="progress-timing">0s elapsed | calculating...</span>
+                <button id="btn-cancel-task" class="btn btn-danger-sm" title="Cancel current operation">Cancel</button>
+            </div>
+        </div>
+        <div class="progress-bar-track">
+            <div id="global-progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="dashboard-tab">
+            <span>📊</span> A/B Experiment Dashboard
+        </button>
+        <button class="nav-tab" data-tab="usecases-tab">
+            <span>🎯</span> Use-Case Library
+        </button>
+        <button class="nav-tab" data-tab="chat-tab">
+            <span>💬</span> Dual Agent Chat Playground
+        </button>
+        <button class="nav-tab" data-tab="variants-tab">
+            <span>🧬</span> Context Arms & Variants
+        </button>
+        <button class="nav-tab" data-tab="questions-tab">
+            <span>📋</span> Evaluation Question Set
+        </button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container">
+
+        <!-- TAB 1: A/B EXPERIMENT DASHBOARD -->
+        <section id="dashboard-tab" class="tab-content active">
+            <!-- Action Toolbar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+                        <h2 id="dashboard-usecase-title" style="font-size: 1.4rem; font-weight: 600;">SRE Incident Response Context Optimization</h2>
+                        <span id="dashboard-usecase-badge" class="tag tag-baseline">HARDCODED FIXTURE</span>
+                    </div>
+                    <p id="dashboard-usecase-desc" style="color: var(--cds-text-secondary); font-size: 0.85rem;">
+                        Rigorous paired on/off arm comparison evaluating Knowledge Atoms, Grounding, and Statistically Significant Deltas (α=0.05).
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <select id="select-active-usecase" class="input-select" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 260px;" title="Select active use-case for evaluation">
+                        <!-- Populated dynamically with hardcoded and ad-hoc use-cases -->
+                    </select>
+                    <button id="btn-run-experiment" class="btn">
+                        <span>▶</span> Run Full Dokimi A/B Eval
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top KPI Cards -->
+            <div class="grid-4">
+                <div class="card">
+                    <div class="card-title">Top Performing Arm</div>
+                    <div class="stat-value" id="kpi-top-arm">SKILL</div>
+                    <div class="stat-subtext">Precision Runbook Skill Protocol</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Score Improvement (Delta)</div>
+                    <div class="stat-value" id="kpi-delta-score">+62.8%</div>
+                    <div class="stat-subtext">vs Baseline (Holm-corrected)</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Statistical Significance</div>
+                    <div class="stat-value" style="font-size: 1.4rem; padding-top: 0.4rem;">
+                        <span id="kpi-sig-tag" class="tag tag-sig">SIGNIFICANT (p < 0.05)</span>
+                    </div>
+                    <div class="stat-subtext" id="kpi-p-value">p = 0.0021 (Paired t-test)</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Knowledge Atoms Injected</div>
+                    <div class="stat-value" id="kpi-novel-atoms">+12 atoms</div>
+                    <div class="stat-subtext">Novel actionable SRE procedures</div>
+                </div>
+            </div>
+
+            <!-- Executive Verdict Banner -->
+            <div class="card" style="border-left: 4px solid var(--cds-interactive); margin-bottom: 1.5rem; background-color: var(--cds-layer-02);">
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <span style="font-size: 1.25rem;">💡</span>
+                    <div>
+                        <strong style="color: var(--cds-link-primary); display: block; margin-bottom: 0.2rem;">Dokimi Executive Verdict & Summary</strong>
+                        <div id="summary-verdict-text" style="color: var(--cds-text-secondary); font-size: 0.9rem;">
+                            Running initial evaluation metrics...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Charts Grid -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">
+                        <span>📈 Context Arm Scoring Comparison</span>
+                        <span style="font-size: 0.75rem; color: var(--cds-text-muted);">Overall / Accuracy / Grounding</span>
+                    </div>
+                    <div id="chart-bar-performance" style="width: 100%; height: 320px;"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">
+                        <span>🕸️ Multi-Dimensional Context Radar</span>
+                        <span style="font-size: 0.75rem; color: var(--cds-text-muted);">Accuracy, Completeness, Conciseness & Novelty</span>
+                    </div>
+                    <div id="chart-radar-dimensions" style="width: 100%; height: 320px;"></div>
+                </div>
+            </div>
+
+            <!-- Context Arms Comparison Table -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="card-title">
+                    <span>🧪 Treatment Arms Statistical Scorecard (Dokimi)</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Arm Spec ID</th>
+                                <th>Mean Score</th>
+                                <th>Delta (vs Base)</th>
+                                <th>p-value (Paired t)</th>
+                                <th>Statistical Significance</th>
+                                <th>Accuracy</th>
+                                <th>Completeness</th>
+                                <th>Novel Atoms</th>
+                                <th>Avg Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exp-metrics-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detailed Question Responses & Judge Reasoning -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🔍 Ground Truth Question Evaluation & Judge Breakdown</span>
+                </div>
+                <div id="detailed-results-container" style="margin-top: 1rem;">
+                    <!-- Question Cards Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: USE-CASE LIBRARY (HARDCODED & AD-HOC) -->
+        <section id="usecases-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 600;">Use-Case Library</h2>
+                    <p style="color: var(--cds-text-secondary); font-size: 0.85rem;">
+                        Demonstration fixtures (SRE Incident Response, Cloud Security) and dynamic ad-hoc use-case submissions for Dokimi A/B evaluation.
+                    </p>
+                </div>
+                <button id="btn-create-usecase-modal" class="btn">
+                    <span>+</span> Submit Ad-Hoc Use-Case
+                </button>
+            </div>
+
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="card-title">
+                    <span>📚 Registered Use-Cases</span>
+                    <span id="usecases-count-badge" class="tag tag-baseline" style="font-size: 0.75rem;">Loading...</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Use-Case Name</th>
+                                <th>ID</th>
+                                <th>Scenarios</th>
+                                <th>Parameters / Thresholds</th>
+                                <th>Expected Outputs</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usecases-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Scenarios breakdown of selected use-case in library -->
+            <div id="usecase-scenarios-card" class="card" style="display: none;">
+                <div class="card-title">
+                    <span id="usecase-detail-title">🎯 Scenarios for Selected Use-Case</span>
+                    <button class="btn btn-secondary" onclick="closeUseCaseScenarios()" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">✕ Close</button>
+                </div>
+                <div id="usecase-scenarios-container" style="margin-top: 1rem;">
+                    <!-- Scenario details populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: INTERACTIVE DUAL AGENT CHAT -->
+        <section id="chat-tab" class="tab-content">
+            <div style="margin-bottom: 1.25rem;">
+                <h2 style="font-size: 1.4rem; font-weight: 600;">Dual Agent Context Playground</h2>
+                <p style="color: var(--cds-text-secondary); font-size: 0.85rem;">
+                    Test agent responses side-by-side in real-time across two different context variants.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
+                <label style="font-size: 0.85rem; color: var(--cds-text-secondary); font-weight: 500;">Quick Incident Scenario:</label>
+                <select id="preset-queries" class="input-select" style="max-width: 500px;">
+                    <!-- Populated dynamically from questions dataset -->
+                </select>
+            </div>
+
+            <div class="chat-split-container">
+                <!-- Arm A Box -->
+                <div class="chat-box">
+                    <div class="chat-header">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.85rem;">Agent Variant A:</span>
+                            <select id="select-arm-a" class="input-select" style="display: inline-block; width: auto; padding: 0.2rem 0.5rem; margin-left: 0.5rem; font-size: 0.8rem;">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="chat-messages-a" class="chat-messages">
+                        <div class="chat-message assistant">
+                            Select a scenario or send a question below to test Variant A.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arm B Box -->
+                <div class="chat-box">
+                    <div class="chat-header">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.85rem;">Agent Variant B:</span>
+                            <select id="select-arm-b" class="input-select" style="display: inline-block; width: auto; padding: 0.2rem 0.5rem; margin-left: 0.5rem; font-size: 0.8rem;">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="chat-messages-b" class="chat-messages">
+                        <div class="chat-message assistant">
+                            Select a scenario or send a question below to test Variant B.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Box -->
+            <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+                <input type="text" id="chat-prompt-input" class="input-text" placeholder="Type an incident query (e.g. 'How to fix Exit Code 137 in Kubernetes?')..." style="flex: 1; padding: 0.85rem;">
+                <button id="btn-chat-send" class="btn" style="padding: 0.85rem 1.5rem;">
+                    <span>🚀</span> Send to Both Arms
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB 3: CONTEXT ARMS & VARIANTS MANAGEMENT -->
+        <section id="variants-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 600;">Context Arms & Treatment Variants</h2>
+                    <p style="color: var(--cds-text-secondary); font-size: 0.85rem;">
+                        Define and configure baseline prompts, documentation injections, skills, and personas following Dokimi spec grammar.
+                    </p>
+                </div>
+                <button id="btn-create-variant-modal" class="btn">
+                    <span>+</span> Add Custom Context Arm
+                </button>
+            </div>
+
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Variant Name</th>
+                            <th>Arm Type</th>
+                            <th>Dokimi Arm Spec</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variants-table-body">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 4: EVALUATION QUESTIONS -->
+        <section id="questions-tab" class="tab-content">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.4rem; font-weight: 600;">Golden Evaluation Dataset</h2>
+                <p style="color: var(--cds-text-secondary); font-size: 0.85rem;">
+                    Standardized test questions with expected topic assertions for paired LLM-as-a-Judge grading.
+                </p>
+            </div>
+
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Evaluation Question</th>
+                            <th style="width: 120px;">Category</th>
+                            <th>Expected Ground Truth Topics</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questions-table-body">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Variant Create/Edit Modal -->
+    <div id="modal-variant" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 600;">Configure Context Arm Variant</h3>
+                <button class="btn btn-secondary" onclick="closeVariantModal()" style="padding: 0.2rem 0.5rem;">✕</button>
+            </div>
+            <form id="form-variant">
+                <div class="input-group">
+                    <label class="input-label">Variant Identifier (ID)</label>
+                    <input type="text" id="input-variant-id" class="input-text" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Variant Display Name</label>
+                    <input type="text" id="input-variant-name" class="input-text" required>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="input-label">Dokimi Arm Type</label>
+                        <select id="input-variant-arm-type" class="input-select">
+                            <option value="baseline">baseline</option>
+                            <option value="profile">profile</option>
+                            <option value="docs">docs</option>
+                            <option value="skill">skill</option>
+                            <option value="mcp">mcp</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Dokimi Spec (e.g. skill:path or docs:local:path)</label>
+                        <input type="text" id="input-variant-spec" class="input-text" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description</label>
+                    <input type="text" id="input-variant-desc" class="input-text">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">System Prompt (Persona)</label>
+                    <textarea id="input-variant-system" class="input-textarea" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Injected Context / Skill / Docs Content</label>
+                    <textarea id="input-variant-context" class="input-textarea" rows="5"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeVariantModal()">Cancel</button>
+                    <button type="submit" class="btn">Save Context Arm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Use-Case Create / Submit Ad-Hoc Modal -->
+    <div id="modal-usecase" class="modal-overlay">
+        <div class="modal-content" style="max-width: 650px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 600;">Submit Dynamic Ad-Hoc Use-Case</h3>
+                <button class="btn btn-secondary" onclick="closeUseCaseModal()" style="padding: 0.2rem 0.5rem;">✕</button>
+            </div>
+            <form id="form-usecase">
+                <div class="input-group">
+                    <label class="input-label">Use-Case Title</label>
+                    <input type="text" id="input-uc-name" class="input-text" placeholder="e.g. Distributed Database Failover Strategy" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description & Objectives</label>
+                    <textarea id="input-uc-desc" class="input-textarea" rows="2" placeholder="e.g. Evaluate context arms on multi-region quorum recovery and split-brain resolution"></textarea>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="input-label">Parameters / Thresholds (JSON)</label>
+                        <textarea id="input-uc-params" class="input-textarea" rows="3" style="font-family: var(--cds-font-mono); font-size: 0.8rem;">{"domain": "Database SRE", "alpha": 0.05, "min_score_threshold": 0.70}</textarea>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Expected Outputs / Criteria (1 per line)</label>
+                        <textarea id="input-uc-outputs" class="input-textarea" rows="3" placeholder="Identify Raft quorum loss&#10;Preserve ACID guarantees&#10;Provide rollback playbook"></textarea>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <label class="input-label" style="margin-bottom: 0; font-weight: 600;">Evaluation Scenarios (Questions)</label>
+                    <button type="button" class="btn btn-secondary" onclick="addScenarioRow()" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">+ Add Scenario</button>
+                </div>
+                <div id="modal-scenario-rows-container" style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                    <!-- Scenario input items added dynamically -->
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeUseCaseModal()">Cancel</button>
+                    <button type="submit" class="btn">Register Use-Case</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        Dokimi Agent Context A/B Testing Platform &bull; Built with Intel Dokimi & FastAPI &bull; Production SRE Evaluation
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

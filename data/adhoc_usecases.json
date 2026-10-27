@@ -1,0 +1,32 @@
+[
+  {
+    "id": "adhoc_20261027_130255_cabb",
+    "name": "Database Failover Drill",
+    "description": "Evaluate multi-region recovery and consensus",
+    "source": "adhoc",
+    "is_mutable": true,
+    "parameters": {
+      "domain": "Database",
+      "alpha": 0.05
+    },
+    "expected_outputs": [
+      "Quorum recovery",
+      "Data consistency"
+    ],
+    "scenarios": [
+      {
+        "id": "db_failover_1",
+        "prompt": "Primary node unresponsive, how to promote replica?",
+        "expected_topics": [
+          "promote",
+          "failover",
+          "quorum"
+        ],
+        "category": "High Availability"
+      }
+    ],
+    "custom_variants": null,
+    "created_at": "2026-10-27T13:02:55.122560Z",
+    "updated_at": "2026-10-27T13:02:55.122560Z"
+  }
+]

@@ -1,0 +1,45 @@
+# Virtual environment
+.venv/
+.test_venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.dylib
+*.onnx
+*.onnx.data
+*.tgz
+*.tar.gz
+*.zip
+
+# Environment & local settings
+.env
+.env.local
+.env.*.local
+.bob/mcp.json
+AGENTS.md
+
+# Underscore folders
+_*/
+
+# Node & frontend build artifacts
+node_modules/
+.npm
+.playwright-mcp/
+
+# Input and Output contents
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
+results/*
+!results/.gitkeep
+
+# IDE & OS
+.DS_Store
+.idea/
+*.swp
+*.swo
