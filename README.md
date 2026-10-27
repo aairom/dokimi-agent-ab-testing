@@ -151,10 +151,13 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your web browser.
 
 ---
 
-## 📂 Project Structure
-- **Architecture Documentation**: [`Docs/Architecture.md`](Docs/Architecture.md)
-- **Quickstart Guide**: [`Docs/Quickstart.md`](Docs/Quickstart.md)
-- **Ad-Hoc Use-Cases Guide & API Spec**: [`Docs/AdHoc_UseCases.md`](Docs/AdHoc_UseCases.md)
+## 📂 Documentation & Project Structure
+- **Architecture Specification**: [`Docs/Architecture.md`](Docs/Architecture.md) - Mermaid diagrams, component contracts, statistical engine
+- **Quickstart Guide**: [`Docs/Quickstart.md`](Docs/Quickstart.md) - 2-minute setup, CLI automation, and container instructions
+- **Getting Started Guide**: [`Docs/GettingStarted.md`](Docs/GettingStarted.md) - Beginner-friendly concepts and first use-case tutorial
+- **Ad-Hoc Use-Cases Guide**: [`Docs/AdHoc_UseCases.md`](Docs/AdHoc_UseCases.md) - Deep-dive on dynamic use-case creation, validation, and persistence
+- **REST API Reference**: [`Docs/API.md`](Docs/API.md) - Complete endpoints, parameters, schemas, and error codes
+- **Executable Code Examples**: [`Docs/Examples.md`](Docs/Examples.md) - Copy-pasteable Python, JavaScript, cURL, and Bash scripts
 
 ---
 
